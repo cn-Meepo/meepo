@@ -1,0 +1,227 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ taglib uri="/WEB-INF/struts-html-el.tld" prefix="html"%>
+<%@ taglib uri="/WEB-INF/c.tld" prefix="c"%>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>同城物流管理系统</title>
+<meta name="description" content="这是一个 index 页面">
+<meta name="keywords" content="index">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="renderer" content="webkit">
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+<link rel="icon" type="image/png" href="../assets/i/favicon.png">
+<link rel="apple-touch-icon-precomposed"
+	href="../assets/i/app-icon72x72@2x.png">
+<meta name="apple-mobile-web-app-title" content="Amaze UI" />
+<link rel="stylesheet" href="../assets/css/amazeui.min.css" />
+<link rel="stylesheet" href="../assets/css/amazeui.datatables.min.css" />
+<link rel="stylesheet" href="../assets/css/app.css">
+<script src="../assets/js/jquery.min.js"></script>
+<script src="../assets/js/theme.js"></script>
+
+</head>
+<body>
+	<html:form action="/user/user.do?thisAction=updateRegister"
+				target="_self">
+			<div class="am-g tpl-g">
+			<!-- 风格切换 -->
+			<div class="tpl-skiner">
+				<div class="tpl-skiner-toggle am-icon-cog">
+				</div>
+				<div class="tpl-skiner-content">
+					<div class="tpl-skiner-content-title">
+						选择主题
+					</div>
+					<div class="tpl-skiner-content-bar">
+						<span class="skiner-color skiner-white" data-color="theme-white"></span>
+						<span class="skiner-color skiner-black" data-color="theme-black"></span>
+					</div>
+				</div>
+			</div>
+			<div class="tpl-login">
+				<div class="tpl-login-content">
+					<div class="tpl-login-title">注册用户</div>
+					<span class="tpl-login-content-info">
+                  创建一个新的用户
+              </span>
+
+					<form class="am-form tpl-form-line-form">
+
+						<div class="am-form-group">
+							<input type="text" class="tpl-form-input" id="user-name" name="loginNo" placeholder="手机号码">
+						</div>
+
+						<div class="am-form-group">
+							<input type="password" class="tpl-form-input" id="user-password" name="password" placeholder="请输入密码">
+						</div>
+
+						<div class="am-form-group">
+							<input type="password" class="tpl-form-input" id="user-resetPassword" placeholder="再次输入密码">
+						</div>
+						<div class="am-form-group">
+							<input type="text" class="tpl-form-input" id="user-code" placeholder="验证码">
+							<button type="button" id="code_btn">获取验证码</button>
+						</div>
+						<div class="am-form-group tpl-login-remember-me">
+							<input id="remember-me" type="checkbox" checked="checked">
+							<label for="remember-me">我已阅读并同意 <a href="javascript:;">《用户注册协议》</a> 
+                         </label>
+
+						</div>
+
+						<div class="am-form-group">
+							<button type="button" id="submit_btn" class="am-btn am-btn-primary  am-btn-block tpl-btn-bg-color-success  tpl-login-btn">提交</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		</html:form>
+</body>
+<script src="../assets/js/amazeui.min.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../_js/util.js"></script>
+<script src="../_js/new/jQuery.md5.js"></script>
+<script>
+	$("#user-name").change(function(){
+		console.log("aaa")
+		var obj = {};
+		var loginNo = this.value;
+		var loginRegx = /(^1[3|5|8][0-9]{9}$)/;
+		alert(loginRegx.test(loginNo))
+		if(loginNo == "") {
+			return false;
+		}
+		if(!loginRegx.test(loginNo)) {
+			alert("请输入正确的手机号码");
+			return false;
+		}
+		obj.loginNo = loginNo;
+		var content = JSON.stringify(obj);
+		var objdata = {};
+		objdata.content = base64_encode(encodeURI(content));
+		var util = new Util();
+		var url = "user.do?thisAction=hasLoginNo";
+		$.ajax({
+			url: url,
+			data: objdata,
+			type: "POST",
+			success: function(result) {
+				if(result.err == "0") {
+					$("#submit_btn").attr("ajax-login", "success");
+				} else {
+					$("#submit_btn").attr("ajax-login", "error");
+				}
+				console.log(result)
+				alert(result.msg);
+			}
+		})
+	})
+
+	$("#user-password").change(function() {
+		var password = $("#user-password").val();
+		var passRegx = /^[a-zA-Z0-9_-]{6,18}$/;
+		if(!passRegx.test(password)) {
+			alert("请输入6位以上字母或字母数字组合密码");
+			$("#submit_btn").attr("ajax-password", "error");
+		} else {
+			$("#submit_btn").attr("ajax-password", "success");
+		}
+	})
+
+	$("#user-resetPassword").change(function() {
+		var password = $("#user-password").val();
+		var resetPassword = $("#user-resetPassword").val();
+		if(password != resetPassword) {
+			alert("两次密码输入不一致");
+			$("#submit_btn").attr("ajax-resetPasswprd", "error");
+		} else {
+			$("#submit_btn").attr("ajax-resetPasswprd", "success");
+		}
+	})
+
+	$("#code_btn").click(function() {
+		var obj = {};
+		var loginNo = $("#user-name").val();
+		if($("#submit_btn").attr("ajax-login") == "error") {
+			alert("请重新输入未注册的手机号码");
+			return false;
+		} 
+		var loginRegx = /(^1[3|5|8][0-9]{9}$)/;
+		if(!loginRegx.test(loginNo)) {
+			alert("请重新输入正确的手机号码");
+			return false;
+		}
+		obj.loginNo = loginNo;
+		var content = JSON.stringify(obj);
+		var objdata = {};
+		objdata.content = base64_encode(encodeURI(content));
+		var util = new Util();
+		var url = "user.do?thisAction=sendCode";
+		$.ajax({
+			url: url,
+			data: objdata,
+			type: "POST",
+			success: function(data) {
+			alert(data.msg)
+			}
+		})
+	})
+	$("#user-code").change(function(){
+		var obj = {};
+		var code = $("#user-code").val();
+		console.log("bbbaaa");
+		console.log()
+		if(!code) {
+			return false;
+		}
+	
+		obj.code = code;
+		var content = JSON.stringify(obj);
+		var objdata = {};
+		objdata.content = base64_encode(encodeURI(content));
+		var util = new Util();
+		var url = "user.do?thisAction=checkCode";
+		$.ajax({
+			url: url,
+			data: objdata,
+			type: "POST",
+			success: function(data) {
+				console.log(data);
+				if(data.err == "0") {
+					$("#submit_btn").attr("ajax-code", "success");
+				} else {
+					$("#submit_btn").attr("ajax-code", "error");
+				}
+			}
+		})
+
+	})
+	$("#submit_btn").click(function(){
+		 
+		if($("#submit_btn").attr("ajax-login") != "success"){
+			alert("请输入正确的手机号码");
+			return false;
+		}
+		if($("#submit_btn").attr("ajax-password") != "success"){
+			alert("请输入6位以上字母数字组合密码");
+			return false;
+		}
+		if($("#submit_btn").attr("ajax-login") != "success"){
+			alert("请输入正确的验证码");
+			return false;
+		} 
+		$("input:checkbox[id='remember-me']").each(function(index,item){
+			if(item.checked){
+				document.forms[0].loginNo.value = $("#user-name").val();
+				document.forms[0].password.value = $.md5($("#user-password").val());
+				document.forms[0].submit();
+				}else{
+        		alert('请认真阅读协议并确认勾选');
+        	}
+		 });
+	})
+</script>
+</html>
